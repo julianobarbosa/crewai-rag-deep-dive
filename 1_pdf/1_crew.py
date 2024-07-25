@@ -1,17 +1,37 @@
 from crewai import Agent, Crew, Process, Task
 from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
+from langchain_openai import AzureChatOpenAI
+
+import os
+import agentops
 
 load_dotenv()
+agentops.init()
+
+# --- Language Models ---
+# [Azure OpenAI Language Model](https://github.com/crewAIInc/crewAI-examples/blob/main/azure_model/main.py)
+# [Microsoft Docs](https://azure.microsoft.com/en-us/services/cognitive-services/openai/)
+
+
+default_llm = AzureChatOpenAI(
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_API_BASE"),
+    azure_deployment="gpt-4o",
+    model="gpt-4o",
+)
 
 # --- Tools ---
 # PDF SOURCE: https://www.gpinspect.com/wp-content/uploads/2021/03/sample-home-report-inspection.pdf
 pdf_search_tool = PDFSearchTool(
+    llm=default_llm,
     pdf="./example_home_inspection.pdf",
 )
 
 # --- Agents ---
 research_agent = Agent(
+    llm=default_llm,
     role="Research Agent",
     goal="Search through the PDF to find relevant answers",
     allow_delegation=False,
@@ -26,6 +46,7 @@ research_agent = Agent(
 )
 
 professional_writer_agent = Agent(
+    llm=default_llm,
     role="Professional Writer",
     goal="Write professional emails based on the research agent's findings",
     allow_delegation=False,
@@ -89,6 +110,13 @@ crew = Crew(
     agents=[research_agent, professional_writer_agent],
     tasks=[answer_customer_question_task, write_email_task],
     process=Process.sequential,
+    embedder={
+        "provider": "azure_openai",
+        "config": {
+            "model": "text-embedding-ada-002",
+            "deployment_name": "gpt-4o",
+        },
+    },
 )
 
 customer_question = input(
