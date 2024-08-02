@@ -110,13 +110,15 @@ crew = Crew(
     agents=[research_agent, professional_writer_agent],
     tasks=[answer_customer_question_task, write_email_task],
     process=Process.sequential,
-    embedder={
-        "provider": "azure_openai",
-        "config": {
-            "model": "text-embedding-ada-002",
-            "deployment_name": "gpt-4o",
-        },
-    },
+    llm=azure_llm,
+    # embedder={
+    #     "provider": "azure_openai",
+    #     "config": {
+    #         # model": "gpt-4o",
+    #         # "deployment_name": "text-embedding-3-large",
+    #         "deployment_name": "gpt-4o",
+    #     },
+    # },
 )
 
 customer_question = input(
