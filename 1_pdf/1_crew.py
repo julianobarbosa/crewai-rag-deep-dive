@@ -13,21 +13,53 @@ agentops.init()
 # [Azure OpenAI Language Model](https://github.com/crewAIInc/crewAI-examples/blob/main/azure_model/main.py)
 # [Microsoft Docs](https://azure.microsoft.com/en-us/services/cognitive-services/openai/)
 
+API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+RESOURCE_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
+
+azure_llm = AzureChatOpenAI(
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    api_version="2024-02-01",
+    model="gpt-4o",
+    deployment_name="gpt-4o",
+    temperature=0,
+)
 
 default_llm = AzureChatOpenAI(
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-    azure_endpoint=os.getenv("AZURE_OPENAI_API_BASE"),
-    azure_deployment="gpt-4o",
-    model="gpt-4o",
+    api_version=f"{API_VERSION}",
+    azure_endpoint=f"{RESOURCE_ENDPOINT}",
+    deployment_name="gpt-4o",
+    temperature=0,
 )
 
 # --- Tools ---
 # PDF SOURCE: https://www.gpinspect.com/wp-content/uploads/2021/03/sample-home-report-inspection.pdf
 pdf_search_tool = PDFSearchTool(
-    llm=default_llm,
-    pdf="./example_home_inspection.pdf",
+    pdf="./home_inspection_report.pdf",
+    config=dict(
+        # llm=dict(
+        #     provider="azure_openai",  # or google, openai, anthropic, llama2, ...
+        #     config=dict(
+        #         model="gpt-4o",
+        #         # temperature=0.5,
+        #         # top_p=1,
+        #         # stream=true,
+        #     ),
+        # ),
+        # embedder=dict(
+        #     provider="azure_openai",  # or openai, ollama, ...
+        #     config=dict(
+        #         model="text-embedding-ada-002",
+        #         # deployment_name="gpt-4o",
+        #         deployment_name="text-embedding-ada-002",
+        #         # title="Embeddings",
+        #     ),
+        # ),
+    ),
 )
+
 
 # --- Agents ---
 research_agent = Agent(
@@ -44,6 +76,7 @@ research_agent = Agent(
     ),
     tools=[pdf_search_tool],
 )
+
 
 professional_writer_agent = Agent(
     llm=default_llm,
